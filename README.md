@@ -11,21 +11,21 @@ Dr. Alioune Ngom
 University of Windsor
 April 4, 2020
 
-TABLE OF CONTENTS
--1.0 OVERVIEW
--2.0 PROGRAM STRUCTURE AND FUNCTIONALITY
--2.1 CONSTANTS AND MACROS
--2.2 DATA STRUCTURES
--2.3 PROTOTYPES AND THEIR FUNCTIONS
--2.4 VARIABLES
--3.0 ALGORITHM
--4.0 PROGRAM OUTPUTS AND STATISTICS
--4.1 COMPILING
--4.2 PROGRAM OUTPUTS AND STATISTICS
--5.0 CONCLUSION
+# TABLE OF CONTENTS
+- 1.0 OVERVIEW
+- 2.0 PROGRAM STRUCTURE AND FUNCTIONALITY
+- 2.1 CONSTANTS AND MACROS
+- 2.2 DATA STRUCTURES
+- 2.3 PROTOTYPES AND THEIR FUNCTIONS
+- 2.4 VARIABLES
+- 3.0 ALGORITHM
+- 4.0 PROGRAM OUTPUTS AND STATISTICS
+- 4.1 COMPILING
+- 4.2 PROGRAM OUTPUTS AND STATISTICS
+- 5.0 CONCLUSION
 * Please visit section 4.1 Compiling for details on how to run the program.
 
-#1.0 OVERVIEW
+# 1.0 OVERVIEW
 This project gives us the opportunity to create a Virtual Memory Manager that utilizes the
 concepts of demand paging learned in the COMP-3300 Operating Systems course at the
 University of Windsor. After taking the time to understand the project requirements, we were
@@ -47,7 +47,7 @@ advance.
 The remainder of this report will provide a detailed breakdown of the program structure,
 functionality, variables, functions and outputs.
 
-#2.0 PROGRAM STRUCTURE AND FUNCTIONALITY
+# 2.0 PROGRAM STRUCTURE AND FUNCTIONALITY
 
 The Virtual Memory Manager is program structure is broken down into three key files:
 - main.c
@@ -74,15 +74,15 @@ purposes such as counters and globally accessed file descriptors.
 - Detailed breakdowns of each function are provided in section 2.3 (Prototypes and Their
 Functions).
 
-2.1 CONSTANTS AND MACROS
+## 2.1 CONSTANTS AND MACROS
 
-  All constants used in this program are defined in the memfunc.h file. They are all described in
-  detail below.
-    #define PAGE_SIZE 256 : Page size used is 2 8 bytes.
-    #define PM_SIZE (256 * 256) : Physical Memory size used is 65,536 bytes.
-    #define TLB_SIZE 16 : Translation Look-Aside Buffer will have 16 entries
+All constants used in this program are defined in the memfunc.h file. They are all described in
+detail below.
+- #define PAGE_SIZE 256 : Page size used is 2 8 bytes.
+- #define PM_SIZE (256 * 256) : Physical Memory size used is 65,536 bytes.
+- #define TLB_SIZE 16 : Translation Look-Aside Buffer will have 16 entries
 
-##2.2 DATA STRUCTURES
+## 2.2 DATA STRUCTURES
 
 Throughout the virtual memory manager, the following data structures are used to access,
 lookup and store page numbers and frames:
@@ -98,105 +98,105 @@ memory store is capable of storing 256 addresses.
 - This array is also used for the program to retrieve the value output - that is, the signed
 byte value stored at the translated physical address in the array.
 
-int pageTable[PAGE_SIZE]
-  ● This array stores the page numbers (as indices of the array 0 - 255) and their
-  corresponding frames.
-  ● It is paged frequently throughout the operation of the program.
+**int pageTable[PAGE_SIZE]**
+- This array stores the page numbers (as indices of the array 0 - 255) and their
+corresponding frames.
+- It is paged frequently throughout the operation of the program.
 
-int tlBuffer[TLB_SIZE][2]
-  ● This array houses the Translation Look-Aside Buffer.
-  ● It is a 16 x 2 2D array. The first column houses the page numbers and the second
-  column houses the corresponding frames.
-  ● It is used for quick access when paging.
-  ● *NOTE: Since we are using Demand Paging , the TLB will be empty to start causing TLB
-  misses.
+**int tlBuffer[TLB_SIZE][2]**
+- This array houses the Translation Look-Aside Buffer.
+- It is a 16 x 2 2D array. The first column houses the page numbers and the second
+column houses the corresponding frames.
+- It is used for quick access when paging.
+    -*NOTE: Since we are using Demand Paging , the TLB will be empty to start causing TLB
+misses.
 
-char backStoreMap
-  ● This data structure is a pseudo-data structure in memory.
-  ● Instead of accessing the backing_store randomly when needed, we have mapped the
-  contents of the backing_store to memory using the c-function mmap() (from
-  <sys/mann.h>).
-  ● We are given access to this area in memory using the pointer backStoreMap .
-  ● When a page fault occurs, we access this area in memory using this variable to retrieve
-  the respective page and corresponding frame number. This information is then added to
-  the page table.
+**char backStoreMap**
+- This data structure is a pseudo-data structure in memory.
+- Instead of accessing the backing_store randomly when needed, we have mapped the
+contents of the backing_store to memory using the c-function mmap() (from
+<sys/mann.h>).
+- We are given access to this area in memory using the pointer backStoreMap .
+- When a page fault occurs, we access this area in memory using this variable to retrieve
+the respective page and corresponding frame number. This information is then added to
+the page table.
 
-2.3 PROTOTYPES AND THEIR FUNCTIONS
+## 2.3 PROTOTYPES AND THEIR FUNCTIONS
   
-  This section will detail the function prototypes and their algorithms. All prototypes for these
-  functions are in the memfunc.h file, with their function bodies located in memfunc.c . This was
-  done to prevent duplicate naming conventions for functions when working on code
-  simultaneously.
-  
-  void createPageTable()
-    ● This function creates the page table which is used throughout the program.
-    ● The array int pageTable is initialized with the value -1 at each index (256 pages).
-    ○ -1 is used to track faults.
-    ● Each index + 1 corresponds to the page number, e.g. index 0 = page number 1, or 0 = 0,
-    etc.
-    
-  void createTLB()  
-    ● This function creates the Translation Look-Aside Buffer
-    ● The array int tlBuffer is initialized with the value -1 at each index in the 2D array.
-    ● Each page number (16 total) and each corresponding frame (16 total) is initialized to -1.
-    ○ -1 is used to track “empty” positions in the buffer.
-    
-  void createBackStore()
-    ● This function creates the backing store in memory by taking the BACKING_STORE.bin
-    binary file and mapping it to local memory.
-    ● The backStoreFD is a file descriptor which opens the BACKING_STORE.bin file as a
-    READ-ONLY file. The binary file MUST be in the local directory for the program to
-    continue, otherwise the function will throw an error and exit.
-    ● Once the binary file is opened, the mmap() function is called which begins mapping the
-    file to memory. mmap() takes the following parameters:
-      ○ “0” - The “starting-point” in local memory. This is more of a hint for mmap() and
-      the actual address of where this is mapped is returned by the function.
-      ○ “256” - Each frame in memory is to be 256 bytes in length, corresponding to our
-      page size.
-      ○ “PROT_READ” - Pages may only be read from memory. This is similar to
-      opening a file as READ-ONLY.
-      ○ “MAP_SHARED” - Shares this memory location with processes that map the
-      object. Required for our program to access this backStore.
-      ○ “backStoreFD” - The file descriptor containing the data to be mapped, opened
-      one step prior.
-      ○ “0” - The offset. Since no offset is required, this is set to 0.
-    ● mmap() returns a pointer to this section in memory which is stored in the variable
-    backStoreMap .
-    ● If the return value is equal to “MAP_FAILED”, the backStoreFD is closed, an error is
-    presented to the console and the program exits.
-    
-  int checkTLB(int pageNumber)
-    ● This function checks the tlBuffer array using the pageNumber being passed to see if
-    there is a TLB hit (page number/corresponding frame number found).
-    ● For each of the 16 entries, if the pageNumber matches the corresponding value in the
-    first column, the TLBCounter is incremented (signifying a hit) and the frame number is
-    returned at the corresponding page back to main.
-    ● If no match is found for the pageNumber in the tlBuffer, -1 is returned to main indicating
-    a TLB miss.
-    
-  int checkPageTable(int pageNumber)
-    ● This function checks the pageTable array for a match using the pageNumber being
-    passed.
-    ● The pageNumber is used as the index for the pageTable array and the value at that
-    index in the array is stored in a temp variable.
-    ● If the value in temp is -1, this signifies a fault and the pageFaultCounter is incremented.
-    ● The temp variable is returned back to main regardless of the result. This is because:
-      ○ The temp may be a hit and the corresponding frame number is found.
-      ○ The temp may be a fault and the corresponding frame number is not found.
-      
-  void addToTLB(int frameNum, int pageNumber)
-    ● This function will update the frame number and page number to TLB using FIFO.
-    ● It initially checks if TLB is empty by checking the tlbPointer variable. And if it is the
-    variable ‘ tlbPointer’ will be set to 0.
-    ● If the TLB isn’t empty then the tlbPointer will be incremented while also using modulus
-    ‘%’ to the TLB_SIZE so we don’t go over the tlBuffer size - this is important for when the
-    tlb is incremented to a value above the TLB_SIZE (above 16) as it means we always
-    stay at values from the range of 0-15.
-    ● The actual values of the 2D array ‘ tlBuffer ’ in the first column indicates the PageNumber
-    and the second column is the ‘frameNum’.
-    ● Each row will be filled by the variable ‘tlbPointer’ and by doing this we can fill each value
-    of the tlBuffer 2D array with address information using the parameters that are passed
-    into it ‘frameNum’ and ‘pageNumber’.
+This section will detail the function prototypes and their algorithms. All prototypes for these
+functions are in the memfunc.h file, with their function bodies located in memfunc.c . This was
+done to prevent duplicate naming conventions for functions when working on code
+simultaneously.
+
+**void createPageTable()**
+- This function creates the page table which is used throughout the program.
+- The array int pageTable is initialized with the value -1 at each index (256 pages).
+ - -1 is used to track faults.
+- Each index + 1 corresponds to the page number, e.g. index 0 = page number 1, or 0 = 0,
+etc.
+
+**void createTLB()**  
+- This function creates the Translation Look-Aside Buffer
+- The array int tlBuffer is initialized with the value -1 at each index in the 2D array.
+- Each page number (16 total) and each corresponding frame (16 total) is initialized to -1.
+    - -1 is used to track “empty” positions in the buffer.
+
+**void createBackStore()**
+● This function creates the backing store in memory by taking the BACKING_STORE.bin
+binary file and mapping it to local memory.
+● The backStoreFD is a file descriptor which opens the BACKING_STORE.bin file as a
+READ-ONLY file. The binary file MUST be in the local directory for the program to
+continue, otherwise the function will throw an error and exit.
+● Once the binary file is opened, the mmap() function is called which begins mapping the
+file to memory. mmap() takes the following parameters:
+  ○ “0” - The “starting-point” in local memory. This is more of a hint for mmap() and
+  the actual address of where this is mapped is returned by the function.
+  ○ “256” - Each frame in memory is to be 256 bytes in length, corresponding to our
+  page size.
+  ○ “PROT_READ” - Pages may only be read from memory. This is similar to
+  opening a file as READ-ONLY.
+  ○ “MAP_SHARED” - Shares this memory location with processes that map the
+  object. Required for our program to access this backStore.
+  ○ “backStoreFD” - The file descriptor containing the data to be mapped, opened
+  one step prior.
+  ○ “0” - The offset. Since no offset is required, this is set to 0.
+● mmap() returns a pointer to this section in memory which is stored in the variable
+backStoreMap .
+● If the return value is equal to “MAP_FAILED”, the backStoreFD is closed, an error is
+presented to the console and the program exits.
+
+int checkTLB(int pageNumber)
+● This function checks the tlBuffer array using the pageNumber being passed to see if
+there is a TLB hit (page number/corresponding frame number found).
+● For each of the 16 entries, if the pageNumber matches the corresponding value in the
+first column, the TLBCounter is incremented (signifying a hit) and the frame number is
+returned at the corresponding page back to main.
+● If no match is found for the pageNumber in the tlBuffer, -1 is returned to main indicating
+a TLB miss.
+
+int checkPageTable(int pageNumber)
+● This function checks the pageTable array for a match using the pageNumber being
+passed.
+● The pageNumber is used as the index for the pageTable array and the value at that
+index in the array is stored in a temp variable.
+● If the value in temp is -1, this signifies a fault and the pageFaultCounter is incremented.
+● The temp variable is returned back to main regardless of the result. This is because:
+  ○ The temp may be a hit and the corresponding frame number is found.
+  ○ The temp may be a fault and the corresponding frame number is not found.
+
+void addToTLB(int frameNum, int pageNumber)
+● This function will update the frame number and page number to TLB using FIFO.
+● It initially checks if TLB is empty by checking the tlbPointer variable. And if it is the
+variable ‘ tlbPointer’ will be set to 0.
+● If the TLB isn’t empty then the tlbPointer will be incremented while also using modulus
+‘%’ to the TLB_SIZE so we don’t go over the tlBuffer size - this is important for when the
+tlb is incremented to a value above the TLB_SIZE (above 16) as it means we always
+stay at values from the range of 0-15.
+● The actual values of the 2D array ‘ tlBuffer ’ in the first column indicates the PageNumber
+and the second column is the ‘frameNum’.
+● Each row will be filled by the variable ‘tlbPointer’ and by doing this we can fill each value
+of the tlBuffer 2D array with address information using the parameters that are passed
+into it ‘frameNum’ and ‘pageNumber’.
 
 2.4 VARIABLES
 
