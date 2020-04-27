@@ -3,75 +3,76 @@ Virtual Memory Manager - CS330 - Operating Systems (uWindsor) - Final Project
 
 Virtual Memory Manager
 Operational Manual and Specification
-  Mustafa Fawaz (103184737)
-  Ashraf Taifour (104262768)
-  COMP-3300 - Operating Systems
-  Dr. Alioune Ngom
-  University of Windsor
-  April 4, 2020
+
+Mustafa Fawaz (103184737)
+Ashraf Taifour (104262768)
+COMP-3300 - Operating Systems
+Dr. Alioune Ngom
+University of Windsor
+April 4, 2020
 
 TABLE OF CONTENTS
-  1.0 OVERVIEW
-  2.0 PROGRAM STRUCTURE AND FUNCTIONALITY
-  2.1 CONSTANTS AND MACROS
-  2.2 DATA STRUCTURES
-  2.3 PROTOTYPES AND THEIR FUNCTIONS
-  2.4 VARIABLES
-  3.0 ALGORITHM
-  4.0 PROGRAM OUTPUTS AND STATISTICS
-  4.1 COMPILING
-  4.2 PROGRAM OUTPUTS AND STATISTICS
-  5.0 CONCLUSION
-  * Please visit section 4.1 Compiling for details on how to run the program.
+-1.0 OVERVIEW
+-2.0 PROGRAM STRUCTURE AND FUNCTIONALITY
+-2.1 CONSTANTS AND MACROS
+-2.2 DATA STRUCTURES
+-2.3 PROTOTYPES AND THEIR FUNCTIONS
+-2.4 VARIABLES
+-3.0 ALGORITHM
+-4.0 PROGRAM OUTPUTS AND STATISTICS
+-4.1 COMPILING
+-4.2 PROGRAM OUTPUTS AND STATISTICS
+-5.0 CONCLUSION
+* Please visit section 4.1 Compiling for details on how to run the program.
 
-1.0 OVERVIEW
-  This project gives us the opportunity to create a Virtual Memory Manager that utilizes the
-  concepts of demand paging learned in the COMP-3300 Operating Systems course at the
-  University of Windsor. After taking the time to understand the project requirements, we were
-  finally able to implement the required algorithms and processes to complete the operation. As it
-  is understood, our file output matches the one provided by Dr. Alioune Ngom (correct.txt)
-  ensuring that our use of the required files was correct.
+#1.0 OVERVIEW
+This project gives us the opportunity to create a Virtual Memory Manager that utilizes the
+concepts of demand paging learned in the COMP-3300 Operating Systems course at the
+University of Windsor. After taking the time to understand the project requirements, we were
+finally able to implement the required algorithms and processes to complete the operation. As it
+is understood, our file output matches the one provided by Dr. Alioune Ngom (correct.txt)
+ensuring that our use of the required files was correct.
 
-  Ultimately this program will present how Virtual memory works in Operating systems and how
-  using virtual memory can solve many issues such as:
-    1) Not having enough memory.
-    2) Having any holes in our address space
-    3) Keeping programs secure by preventing any program from overwriting another.
+Ultimately this program will present how Virtual memory works in Operating systems and how
+using virtual memory can solve many issues such as:
+1. Not having enough memory.
+2. Having any holes in our address space
+3. Keeping programs secure by preventing any program from overwriting another.
     
-  This program will simulate how virtual memory works by using arrays as storage units (to
-  represent virtual and physical memory) and the page fault handling method that is used is
-  demand paging - this is when pages are loaded to memory only when in demand and NOT in
-  advance.
+This program will simulate how virtual memory works by using arrays as storage units (to
+represent virtual and physical memory) and the page fault handling method that is used is
+demand paging - this is when pages are loaded to memory only when in demand and NOT in
+advance.
   
-  The remainder of this report will provide a detailed breakdown of the program structure,
-  functionality, variables, functions and outputs.
+The remainder of this report will provide a detailed breakdown of the program structure,
+functionality, variables, functions and outputs.
 
-2.0 PROGRAM STRUCTURE AND FUNCTIONALITY
+#2.0 PROGRAM STRUCTURE AND FUNCTIONALITY
 
-  The Virtual Memory Manager is program structure is broken down into three key files:
-    ● main.c
-    ● memfunc.h
-    ● Memfunc.c
+The Virtual Memory Manager is program structure is broken down into three key files:
+- main.c
+- memfunc.h
+- Memfunc.c
   
-  Main (main.c)
-    ● This file drives the main functionality of the program utilizing the header file and function
-    definition file to complete operations.
-    ● Main communicates with all the necessary data structures, functions and variables.
-    ● Main consists of all I/O, file descriptors and virtual memory for the backing store.
+Main (main.c)
+- This file drives the main functionality of the program utilizing the header file and function
+definition file to complete operations.
+- Main communicates with all the necessary data structures, functions and variables.
+- Main consists of all I/O, file descriptors and virtual memory for the backing store.
 
-  Header File (memfunc.h)
-    ● This file consists of all macro definitions (defined in next section) and all the necessary
-    function prototypes needed.
-    ● The header file was created to ensure that we were able to track all functions created in
-    the manager and no duplicate names were added during collaboration.
+Header File (memfunc.h)
+- This file consists of all macro definitions (defined in next section) and all the necessary
+function prototypes needed.
+- The header file was created to ensure that we were able to track all functions created in
+the manager and no duplicate names were added during collaboration.
 
-  Function File (memfunc.c)
-    ● This file provides all of the algorithms required for each function including their return
-    values.
-    ● This file also includes all global variables used in main. Most are required for tracking
-    purposes such as counters and globally accessed file descriptors.
-    ● Detailed breakdowns of each function are provided in section 2.3 (Prototypes and Their
-    Functions).
+Function File (memfunc.c)
+- This file provides all of the algorithms required for each function including their return
+values.
+- This file also includes all global variables used in main. Most are required for tracking
+purposes such as counters and globally accessed file descriptors.
+- Detailed breakdowns of each function are provided in section 2.3 (Prototypes and Their
+Functions).
 
 2.1 CONSTANTS AND MACROS
 
@@ -81,45 +82,45 @@ TABLE OF CONTENTS
     #define PM_SIZE (256 * 256) : Physical Memory size used is 65,536 bytes.
     #define TLB_SIZE 16 : Translation Look-Aside Buffer will have 16 entries
 
-2.2 DATA STRUCTURES
+##2.2 DATA STRUCTURES
 
-  Throughout the virtual memory manager, the following data structures are used to access,
-  lookup and store page numbers and frames:
+Throughout the virtual memory manager, the following data structures are used to access,
+lookup and store page numbers and frames:
 
-  char physicalMem[PM_SIZE]
-    ● This array stores all physical memory addresses after conversion.
-    ● It is of size 256*256 = 65,536 bytes. Each entry consists of 256 bytes and our physical
-    memory store is capable of storing 256 addresses.
-      ○ *NOTE: This was done in accordance to Dr. Ngom’s email on Mar 9 2020 where
-      he outlines the following: “You may also revert to a page-table of size 256 entries
-      (2^8) [not 128 entries] and proceed with the normal implementation of a
-      page-table”
-    ● This array is also used for the program to retrieve the value output - that is, the signed
-    byte value stored at the translated physical address in the array.
+**char physicalMem[PM_SIZE]**
+- This array stores all physical memory addresses after conversion.
+  - It is of size 256*256 = 65,536 bytes. Each entry consists of 256 bytes and our physical
+memory store is capable of storing 256 addresses.
+  - *NOTE: This was done in accordance to Dr. Ngom’s email on Mar 9 2020 where
+  he outlines the following: “You may also revert to a page-table of size 256 entries
+  (2^8) [not 128 entries] and proceed with the normal implementation of a
+  page-table”
+- This array is also used for the program to retrieve the value output - that is, the signed
+byte value stored at the translated physical address in the array.
 
-  int pageTable[PAGE_SIZE]
-    ● This array stores the page numbers (as indices of the array 0 - 255) and their
-    corresponding frames.
-    ● It is paged frequently throughout the operation of the program.
+int pageTable[PAGE_SIZE]
+  ● This array stores the page numbers (as indices of the array 0 - 255) and their
+  corresponding frames.
+  ● It is paged frequently throughout the operation of the program.
 
-  int tlBuffer[TLB_SIZE][2]
-    ● This array houses the Translation Look-Aside Buffer.
-    ● It is a 16 x 2 2D array. The first column houses the page numbers and the second
-    column houses the corresponding frames.
-    ● It is used for quick access when paging.
-    ● *NOTE: Since we are using Demand Paging , the TLB will be empty to start causing TLB
-    misses.
+int tlBuffer[TLB_SIZE][2]
+  ● This array houses the Translation Look-Aside Buffer.
+  ● It is a 16 x 2 2D array. The first column houses the page numbers and the second
+  column houses the corresponding frames.
+  ● It is used for quick access when paging.
+  ● *NOTE: Since we are using Demand Paging , the TLB will be empty to start causing TLB
+  misses.
 
-  char backStoreMap
-    ● This data structure is a pseudo-data structure in memory.
-    ● Instead of accessing the backing_store randomly when needed, we have mapped the
-    contents of the backing_store to memory using the c-function mmap() (from
-    <sys/mann.h>).
-    ● We are given access to this area in memory using the pointer backStoreMap .
-    ● When a page fault occurs, we access this area in memory using this variable to retrieve
-    the respective page and corresponding frame number. This information is then added to
-    the page table.
-    
+char backStoreMap
+  ● This data structure is a pseudo-data structure in memory.
+  ● Instead of accessing the backing_store randomly when needed, we have mapped the
+  contents of the backing_store to memory using the c-function mmap() (from
+  <sys/mann.h>).
+  ● We are given access to this area in memory using the pointer backStoreMap .
+  ● When a page fault occurs, we access this area in memory using this variable to retrieve
+  the respective page and corresponding frame number. This information is then added to
+  the page table.
+
 2.3 PROTOTYPES AND THEIR FUNCTIONS
   
   This section will detail the function prototypes and their algorithms. All prototypes for these
