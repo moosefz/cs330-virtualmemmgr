@@ -1,15 +1,14 @@
 # cs330-virtualmemmgr
 Virtual Memory Manager - CS330 - Operating Systems (uWindsor) - Final Project
 
-Virtual Memory Manager
-Operational Manual and Specification
+# Virtual Memory Manager - Operational Manual and Specification
 
-Mustafa Fawaz (103184737)
-Ashraf Taifour (104262768)
-COMP-3300 - Operating Systems
-Dr. Alioune Ngom
-University of Windsor
-April 4, 2020
+- Mustafa Fawaz (103184737)
+- Ashraf Taifour (104262768)
+- COMP-3300 - Operating Systems
+- Dr. Alioune Ngom
+    - University of Windsor
+    - April 4, 2020
 
 # TABLE OF CONTENTS
 - 1.0 OVERVIEW
