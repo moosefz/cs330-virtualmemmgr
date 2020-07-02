@@ -1,4 +1,4 @@
-# cs330-virtualmemmgr
+# Virtual Memory Manager - C330
 Virtual Memory Manager - CS330 - Operating Systems (uWindsor) - Final Project
 
 # Virtual Memory Manager - Operational Manual and Specification
