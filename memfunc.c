@@ -2,7 +2,6 @@
 //Date: Mar 10 2020
 //COMP-3300 - Project: Virtual Memory Manager
 //PROJECT FUNCTION FILE
-/** We created this header file so keeping track of each function called is easier and less work than scrolling through a large C file. */
 
 //==========================
 //ALL DATA STRUCTURES
@@ -46,17 +45,7 @@ void createBackStore() {
     printf("BACKING STORE file not found. Please add to directory.\n");
     exit(1);
   }
-
-
-  /* mmap() is a system call that stores the contents of the BACKING_STORE in contiguous memory
-  returning the location in memory to the variable backStoreMap. This variable
-  is used to access the contents of the backStore as needed.
-  */
-  //NOTE: mmap takes the following parameters: first parameter is the size we want to start mapping (virtual memory)
-  //second parameter is the size we want to map
-  //third and fourth parameter is any options about paging:PROT_READ will alow for reading, MAP_SHARED here means it will be visible for other processes.
-  //fifth parameter is the .bin file and the sixth parameter is the offset (we're starting at 0)
-  //return value is a pointer to the mapped area if succesful.
+  
   backStoreMap = mmap(0, PM_SIZE, PROT_READ, MAP_SHARED, backStoreFD, 0);
   if(backStoreMap == MAP_FAILED) {
     close(backStoreFD);
@@ -67,7 +56,6 @@ void createBackStore() {
 
 /* Checks the TLB for existing page numbers and returns corresponding
   frame number */
-//NOTE: TLB has 16 rows and 2 columns, the first column is the page number while the second column is the frame number.
 int checkTLB(int pageNumber) {
   for(int i = 0; i < TLB_SIZE; i++)
   {
@@ -84,7 +72,7 @@ int checkTLB(int pageNumber) {
  If not found, return -1 and consult BACKING_STORE*/
 int checkPageTable(int pageNumber) {
 
-  int temp = pageTable[pageNumber]; //temp var to store pageTable return.
+  int temp = pageTable[pageNumber]; 
   //Page Fault - increment fault counter for rates
   if(temp == -1) {
     ++pageFaultCounter;
@@ -107,7 +95,6 @@ void addToTLB(int frameNum, int pageNumber) {
   //if TLB is not empty, all elements must be shifted and new entry added to back
   } else {
     //Set TLB access point to end of queue (empty to start)
-    //NOTE: we % TLB_SIZE here in so we never overflow (SEG FAULT) our tlbBUffer's size. This means that we will eventually overwrite values in TLB if we already used all of its slots.
     tlbPointer = (++tlbPointer) % TLB_SIZE;
 
     //Enqueue entry into TLB from the back of the queue
